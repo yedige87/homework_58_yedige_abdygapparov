@@ -1,6 +1,7 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.views.generic import TemplateView
 
 from webapp.models import ToDo
 from webapp.views.test import check_date
@@ -59,9 +60,13 @@ def edit_view(request: WSGIRequest, pk):
     # return redirect('todo_view', pk=todo.pk)
 
 
-def todo_view(request, pk):
-    todo = get_object_or_404(ToDo, pk=pk)
-    return render(request, 'view.html', context={'todo': todo, 'states': states})
+class ToDoView(TemplateView):
+    template_name = 'view.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['todo'] = get_object_or_404(ToDo, pk=kwargs['pk'])
+        return context
 
 
 def delete_view(request, pk):
