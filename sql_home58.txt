@@ -1,0 +1,57 @@
+-- 1. Закрытые задачи за последний месяц от текущей даты.
+
+WITH
+temp_table AS ( SELECT '2023-02-10' AS curr_date)
+SELECT a.id,a.deadline, a.title, t.type, a.status, c.category FROM webapp_todo a
+CROSS JOIN temp_table b
+join webapp_type t on a.type_id = t.id
+join webapp_category c on a.category_id = c.id
+WHERE date(a.deadline) between date(b.curr_date) -30 and  date(b.curr_date)
+and status='done'
+order by a.deadline
+
+
+-- 2. Задачи, имеющие один из указанных статусов И один из указанных типов (в запросе укажите 2 любых названия типа и 2 названия статуса, которые есть в вашей базе).
+-- а) type = 'Task', status = 'new'
+
+select a.id, a.title, t.type, a.status, c.category from webapp_todo a
+join webapp_type t on a.type_id = t.id
+join webapp_category c on a.category_id = c.id
+where a.type_id = (select id from webapp_type where type = 'Task')
+and a.status = 'new'
+order by a.deadline
+
+-- б) type = 'Bug', status = 'in_progress'
+
+select a.id, a.title, t.type, a.status, c.category from webapp_todo a
+join webapp_type t on a.type_id = t.id
+join webapp_category c on a.category_id = c.id
+where a.type_id = (select id from webapp_type where type = 'Bug')
+and a.status = 'in_progress'
+order by a.deadline
+
+-- 3. Задачи, в названии которых содержится слово "баг" в любом регистре или относящиеся к типу "Bug", имеющие НЕ закрытый статус.
+
+select a.id, a.title, t.type, a.status, c.category from webapp_todo a
+join webapp_type t on a.type_id = t.id
+join webapp_category c on a.category_id = c.id
+where (a.title ILIKE '%баг%' or 
+	   a.type_id = (select id from webapp_type where type='Bug'))
+	   and status <> 'done'
+order by a.deadline
+
+
+-- 4. Задачи, где краткое описание совпадает с полным.
+
+select a.id, a.title, t.type, a.status, c.category, a.description from webapp_todo a
+join webapp_type t on a.type_id=t.id
+join webapp_category c on a.category_id = c.id
+where title = description 
+order by a.deadline
+
+-- 5. Количество задач по каждому типу.
+
+select t.type, count(a.type_id) from webapp_type t
+join webapp_todo a on a.type_id=t.id
+group by t.type
+order by t.type
